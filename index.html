@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veggie Quest: Coming Soon!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0fff0; /* Light veggie green */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        /* The "Bouncing" Sprite */
+        .sprite-preview {
+            width: 150px;
+            height: auto;
+            animation: bounce 2s infinite ease-in-out;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+        }
+
+        h1 {
+            color: #2d5a27;
+            margin-top: 20px;
+            font-size: 2.5rem;
+        }
+
+        p {
+            color: #555;
+            font-size: 1.2rem;
+            max-width: 80%;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Responsive scaling for small phones */
+        @media (max-width: 400px) {
+            h1 { font-size: 1.8rem; }
+            .sprite-preview { width: 120px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="broccoli.png" alt="Happy Broccoli" class="sprite-preview">
+        
+        <h1>Veggie Quest</h1>
+        <p>Something tasty is growing... <br><strong>Coming to lunchrooms next week!</strong></p>
+    </div>
+
+</body>
+</html>
