@@ -1,68 +1,411 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veggie Quest: Coming Soon!</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Veggie Quest</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f0fff0; /* Light veggie green */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            text-align: center;
-        }
-
-        .container {
-            padding: 20px;
-        }
-
-        /* The "Bouncing" Sprite */
-        .sprite-preview {
-            width: 150px;
-            height: auto;
-            animation: bounce 2s infinite ease-in-out;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
-        }
-
-        h1 {
-            color: #2d5a27;
-            margin-top: 20px;
-            font-size: 2.5rem;
-        }
-
-        p {
-            color: #555;
-            font-size: 1.2rem;
-            max-width: 80%;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        /* Responsive scaling for small phones */
-        @media (max-width: 400px) {
-            h1 { font-size: 1.8rem; }
-            .sprite-preview { width: 120px; }
-        }
+      body {
+        margin: 0;
+        background: #87ceeb;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        overflow: hidden;
+        touch-action: none;
+        user-select: none;
+      }
+      canvas {
+        display: block;
+      }
+      #ui-container {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 240px;
+        text-align: center;
+        pointer-events: none;
+        z-index: 10;
+      }
+      #meter-outline {
+        width: 100%;
+        height: 22px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 3px solid white;
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      #energyBar {
+        width: 100%;
+        height: 100%;
+        background: #4caf50;
+        transition: width 0.2s ease-out;
+      }
+      #score-display {
+        color: white;
+        font-size: 24px;
+        font-weight: 900;
+        text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+        margin-top: 8px;
+      }
+      .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.88);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        z-index: 200;
+        text-align: center;
+        padding: 25px;
+        box-sizing: border-box;
+      }
+      h1 {
+        font-size: 3.2rem;
+        margin: 0;
+        font-weight: 900;
+        color: #4caf50;
+        text-shadow: 0 4px #2d5a27;
+      }
+      p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        max-width: 350px;
+      }
+      button {
+        padding: 20px 45px;
+        font-size: 24px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        box-shadow: 0 6px #2d5a27;
+      }
+      button:active {
+        transform: translateY(3px);
+        box-shadow: 0 3px #2d5a27;
+      }
+      #new-record-tag {
+        background: #ffd700;
+        color: #333;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 900;
+        margin-bottom: 15px;
+        transform: rotate(-3deg);
+        box-shadow: 0 4px 0px #b89b00;
+      }
     </style>
-</head>
-<body>
-
-    <div class="container">
-        <img src="broccoli.webp" alt="Happy Broccoli" class="sprite-preview">
-        
-        <h1>Veggie Quest</h1>
-        <p>Something tasty is growing... <br><strong>Coming to lunchrooms next week!</strong></p>
+  </head>
+  <body>
+    <div id="ui-container">
+      <div id="meter-outline"><div id="energyBar"></div></div>
+      <div id="score-display">SCORE: <span id="score">0</span></div>
     </div>
 
-</body>
+    <div id="start-screen" class="overlay">
+      <h1>Veggie Quest</h1>
+      <p>
+        <strong>Nutritious whole foods</strong> give you the most points and
+        keep you fueled! 🥦<br /><br />
+        But beware... <strong>ultra-processed sugary foods</strong> will cause a
+        <span style="color: #ff5252; font-weight: bold">SUGAR CRASH</span> and
+        lose you points! 🍩
+      </p>
+      <button id="startBtn" onclick="startGame()" disabled>LOADING...</button>
+    </div>
+
+    <div id="game-over" class="overlay" style="display: none">
+      <h1 style="color: #ff5252">ENERGY EMPTY!</h1>
+      <div id="new-record-tag" style="display: none">NEW QUEST RECORD! 🏆</div>
+      <h2
+        id="final-score"
+        style="font-size: 4.5rem; color: #ffeb3b; margin: 10px 0"
+      >
+        0
+      </h2>
+      <p
+        id="quest-rank"
+        style="font-size: 1.6rem; color: #4caf50; font-weight: bold; margin: 0"
+      >
+        Rank: Sprout
+      </p>
+      <p
+        id="best-score"
+        style="font-size: 1rem; color: #fff; margin-bottom: 25px; opacity: 0.7"
+      >
+        Best Quest: 0
+      </p>
+      <button onclick="location.reload()">RE-FUEL & PLAY</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const scoreElement = document.getElementById("score");
+      const energyBar = document.getElementById("energyBar");
+      const startBtn = document.getElementById("startBtn");
+
+      const gameSettings = {
+        itemCount: 15, // Reduced count slightly to prevent clutter
+        baseSpeed: 5,
+        speedRange: 4.0,
+        speedEscalation: 1800,
+        drainRate: 0.12,
+        difficultyScale: 1500,
+      };
+
+      let score = 0;
+      let fuel = 100;
+      let gameActive = false;
+      let currentDrain = gameSettings.drainRate;
+      let popups = [];
+
+      const assets = {
+        broccoli: {
+          src: "game/assets/broccoli.png",
+          type: "fuel",
+          power: 15,
+          points: 25,
+        },
+        donut: {
+          src: "game/assets/donut.png",
+          type: "sluggish",
+          power: -22,
+          points: -20,
+        },
+        bread: {
+          src: "game/assets/white-bread.png",
+          type: "steady",
+          power: 6,
+          points: 5,
+        },
+        cheese: {
+          src: "game/assets/cheese.png",
+          type: "steady",
+          power: 8,
+          points: 10,
+        },
+      };
+
+      const images = {};
+      let loadedCount = 0;
+      const totalAssets = Object.keys(assets).length;
+
+      Object.keys(assets).forEach((key) => {
+        images[key] = new Image();
+        images[key].src = assets[key].src;
+        images[key].onload = () => {
+          loadedCount++;
+          if (loadedCount === totalAssets) {
+            startBtn.innerText = "START LUNCH";
+            startBtn.disabled = false;
+          }
+        };
+        images[key].onerror = () => {
+          loadedCount++;
+          if (loadedCount === totalAssets) {
+            startBtn.innerText = "START LUNCH";
+            startBtn.disabled = false;
+          }
+        };
+      });
+
+      function startGame() {
+        document.getElementById("start-screen").style.display = "none";
+        gameActive = true;
+        resize();
+        animate();
+      }
+
+      class Item {
+        constructor() {
+          this.radius = 40; // Fixed size for consistency
+          this.reset();
+        }
+        reset() {
+          const keys = Object.keys(assets);
+          this.key = keys[Math.floor(Math.random() * keys.length)];
+          this.data = assets[this.key];
+
+          // Spawn above screen
+          this.y = -Math.random() * 800 - this.radius;
+
+          // Keep within screen bounds
+          const margin = this.radius * 2;
+          this.x = margin + Math.random() * (window.innerWidth - margin * 2);
+
+          const scoreSpeedBoost = score / gameSettings.speedEscalation;
+          const typeBoost = this.data.type === "sluggish" ? 1.3 : 1.0;
+          this.speed =
+            (gameSettings.baseSpeed +
+              Math.random() * gameSettings.speedRange +
+              scoreSpeedBoost) *
+            typeBoost;
+
+          this.rotation = Math.random() * Math.PI;
+          this.rotationSpeed = Math.random() * 0.06 - 0.03;
+        }
+        update() {
+          this.y += this.speed;
+          this.rotation += this.rotationSpeed;
+          if (this.y > window.innerHeight + this.radius) this.reset();
+        }
+        draw() {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation);
+
+          if (
+            images[this.key] &&
+            images[this.key].complete &&
+            images[this.key].naturalWidth !== 0
+          ) {
+            ctx.drawImage(
+              images[this.key],
+              -this.radius,
+              -this.radius,
+              this.radius * 2,
+              this.radius * 2,
+            );
+          } else {
+            ctx.fillStyle = this.data.type === "sluggish" ? "red" : "green";
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+      }
+
+      let items = [];
+
+      function handleInput(e) {
+        if (!gameActive) return;
+        const rect = canvas.getBoundingClientRect();
+        // Get coordinates relative to the visible window size
+        const clientX =
+          (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        const clientY =
+          (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+        items.forEach((v) => {
+          // Larger hit area for better mobile feel
+          const hitBox = v.radius + 30;
+          const dist = Math.hypot(clientX - v.x, clientY - v.y);
+
+          if (dist < hitBox) {
+            const color = v.data.points > 0 ? "#4caf50" : "#ff5252";
+            popups.push({
+              x: v.x,
+              y: v.y,
+              text: (v.data.points > 0 ? "+" : "") + v.data.points,
+              color: color,
+              opacity: 1,
+              life: 40,
+            });
+
+            score = Math.max(0, score + v.data.points);
+            fuel = Math.min(100, fuel + v.data.power);
+            currentDrain =
+              gameSettings.drainRate + score / gameSettings.difficultyScale;
+            scoreElement.innerText = score;
+            v.reset();
+          }
+        });
+      }
+
+      canvas.addEventListener("mousedown", handleInput);
+      canvas.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          handleInput(e);
+        },
+        { passive: false },
+      );
+
+      function animate() {
+        if (!gameActive) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        fuel -= currentDrain;
+        energyBar.style.width = Math.max(0, fuel) + "%";
+        energyBar.style.backgroundColor =
+          fuel > 60 ? "#4caf50" : fuel > 30 ? "#ffc107" : "#ff5252";
+
+        if (fuel <= 0) {
+          endGame();
+          return;
+        }
+
+        // Popups
+        for (let i = popups.length - 1; i >= 0; i--) {
+          let p = popups[i];
+          ctx.globalAlpha = p.opacity;
+          ctx.fillStyle = p.color;
+          ctx.font = "bold 32px Segoe UI";
+          ctx.fillText(p.text, p.x, p.y);
+          p.y -= 2;
+          p.opacity -= 0.02;
+          p.life--;
+          if (p.life <= 0) popups.splice(i, 1);
+        }
+        ctx.globalAlpha = 1;
+
+        items.forEach((v) => {
+          v.update();
+          v.draw();
+        });
+        requestAnimationFrame(animate);
+      }
+
+      function endGame() {
+        gameActive = false;
+        let best = parseInt(localStorage.getItem("veggieQuestBest")) || 0;
+        if (score > best) {
+          localStorage.setItem("veggieQuestBest", score);
+          best = score;
+          document.getElementById("new-record-tag").style.display = "block";
+        }
+
+        let rank = "Sprout 🌱";
+        if (score > 500) rank = "Garden Guard 🛡️";
+        if (score > 1200) rank = "Veggie Warrior ⚔️";
+        if (score > 2500) rank = "Harvest Hero 🏆";
+        if (score > 4000) rank = "Quest Legend 👑";
+
+        document.getElementById("game-over").style.display = "flex";
+        document.getElementById("final-score").innerText = score;
+        document.getElementById("quest-rank").innerText = "Rank: " + rank;
+        document.getElementById("best-score").innerText = "Best Quest: " + best;
+        canvas.style.filter = "grayscale(1) contrast(0.5)";
+      }
+
+      function resize() {
+        // Simplified resize to prevent coordinate mismatch
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        if (items.length === 0) {
+          items = Array.from(
+            { length: gameSettings.itemCount },
+            () => new Item(),
+          );
+        }
+      }
+      window.addEventListener("resize", resize);
+      resize();
+    </script>
+  </body>
 </html>
